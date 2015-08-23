@@ -1,0 +1,9 @@
+---
+applications:
+- name: ice_registry 
+  memory: 128MB
+  disk_quota: 256MB
+  random-route: false
+  command: python main.py
+  services:
+   - ice_mongodb
