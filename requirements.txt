@@ -1,2 +1,2 @@
-git+git://github.com/glestaris/iCE.git@v1
+git+git://github.com/glestaris/iCE.git@v2
 

@@ -1,11 +1,11 @@
-#!/usr/bin/env python
 import os
 import re
 import json
-
-from ice import rest_api
-from ice import config
-from ice import logging
+import logging
+import logging.config as logging_config
+import ice
+from ice.registry import server
+from ice.registry.server import domain
 
 
 def _get_mongodb_config():
@@ -21,13 +21,7 @@ def _get_mongodb_config():
     if g is None:
         raise Exception('parsing MongoDB URI: %s' % uri)
 
-    return """[mongodb]
-host = %(hostname)s
-port = %(port)d
-username = %(username)s
-password = %(password)s
-db_name = %(db_name)s
-""" % {
+    return {
         "username": g.group(1),
         "password": g.group(2),
         "hostname": g.group(3),
@@ -36,48 +30,36 @@ db_name = %(db_name)s
     }
 
 
-def _get_registry_config():
-    cfg = ''
-
-    if 'VCAP_APP_PORT' in os.environ:
-        port = int(os.environ['VCAP_APP_PORT'])
-        cfg += """[api_server]
-port = %d
-""" % port
-
-    cfg += _get_mongodb_config()
-
-    return cfg
-
-
-def _set_config():
-    cfg = _get_registry_config()
-
-    dir_path = os.path.expanduser("~/.ice")
-    os.mkdir(dir_path)
-
-    f = open(os.path.join(dir_path, "ice.ini"), "w")
-    f.write(cfg)
-    f.close()
+def _get_logger():
+    for dir_path in ice.CONFIG_DIRS:
+        file_path = os.path.join(dir_path, "logging.ini")
+        if os.path.isfile(file_path):
+            logging_config.fileConfig(file_path)
+    return logging.getLogger('ice.shell')
 
 
 def main():
-    # Set config from CF environment
-    _set_config()
+    logger = _get_logger()
+    logger.setLevel(logging.DEBUG)
 
-    # Make the API server
-    api = rest_api.APIServer()
-
-    # Is verbose?
-    _cfg = config.get_configuration('api_sever')
-    if _cfg.get_bool('api_server', 'debug', False):
-        # Set root logger to debug
-        root_logger = logging.get_logger('ice')
-        root_logger.setLevel(logging.DEBUG)
-        root_logger.debug('Setting log level to DEBUG')
-
-    # Start the API server
-    api.run()
+    mongo = _get_mongodb_config()
+    server.RegistryServer(
+        server.CfgRegistryServer(
+            host='0.0.0.0',
+            port=int(os.environ['VCAP_APP_PORT']),
+            mongo_host=mongo['hostname'],
+            mongo_port=mongo['port'],
+            mongo_db=mongo['db_name'],
+            mongo_user=mongo['username'],
+            mongo_pass=mongo['password'],
+            debug=True
+        ),
+        [
+            domain.instances.InstancesDomain(),
+            domain.sessions.SessionsDomain()
+        ],
+        logger
+    ).run()
 
 
 if __name__ == '__main__':
