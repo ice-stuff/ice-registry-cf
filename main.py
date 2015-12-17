@@ -46,7 +46,7 @@ def main():
     server.RegistryServer(
         server.CfgRegistryServer(
             host='0.0.0.0',
-            port=int(os.environ['VCAP_APP_PORT']),
+            port=int(os.environ['PORT']),
             mongo_host=mongo['hostname'],
             mongo_port=mongo['port'],
             mongo_db=mongo['db_name'],
