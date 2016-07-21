@@ -11,7 +11,7 @@ from ice.registry.server import domain
 def _get_mongodb_config():
     try:
         services = json.loads(os.environ['VCAP_SERVICES'])
-        uri = services['mongolab'][0]['credentials']['uri']
+        uri = services['mlab'][0]['credentials']['uri']
     except Exception as err:
         raise Exception('getting MongoDB URI: %s' % str(err))
 
