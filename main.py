@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import json
 import logging
 from ice.registry import server
@@ -35,7 +36,7 @@ def _get_logger():
         '%(asctime)s [%(name)s] %(levelname)s :: %(message)s'
     )
 
-    ch = logging.StreamHandler()
+    ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(logging.DEBUG)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
@@ -48,6 +49,11 @@ def main():
     logger.setLevel(logging.DEBUG)
 
     mongo = _get_mongodb_config()
+    logger.debug('Will be targeting Mongo in {:s}:{:d}'.format(
+        mongo['hostname'], mongo['port']
+    ))
+
+    logger.info("Starting the server...")
     server.RegistryServer(
         server.CfgRegistryServer(
             host='0.0.0.0',
