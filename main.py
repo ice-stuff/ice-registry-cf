@@ -62,8 +62,7 @@ def main():
             mongo_port=mongo['port'],
             mongo_db=mongo['db_name'],
             mongo_user=mongo['username'],
-            mongo_pass=mongo['password'],
-            debug=True
+            mongo_pass=mongo['password']
         ),
         [
             domain.instances.InstancesDomain(),
