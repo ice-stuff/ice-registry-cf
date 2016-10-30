@@ -2,8 +2,6 @@ import os
 import re
 import json
 import logging
-import logging.config as logging_config
-import ice
 from ice.registry import server
 from ice.registry.server import domain
 
@@ -31,11 +29,18 @@ def _get_mongodb_config():
 
 
 def _get_logger():
-    for dir_path in ice.CONFIG_DIRS:
-        file_path = os.path.join(dir_path, "logging.ini")
-        if os.path.isfile(file_path):
-            logging_config.fileConfig(file_path)
-    return logging.getLogger('ice.shell')
+    logger = logging.getLogger('ice.registry-server')
+
+    formatter = logging.Formatter(
+        '%(asctime)s [%(name)s] %(levelname)s :: %(message)s'
+    )
+
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    return logger
 
 
 def main():
